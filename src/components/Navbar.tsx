@@ -42,7 +42,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             title="Return to Landing Page"
           >
             <img
-              src="/public/assets/aistudio/money_loaning_fc6cfda1.jpg"
+              src="/assets/aistudio/money_loaning_fc6cfda1.jpg"
               alt="Aurum Capital"
               className="h-full w-full object-cover animate-[spin_15s_linear_infinite]"
             />

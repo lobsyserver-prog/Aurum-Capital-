@@ -10,5 +10,11 @@ service cloud.firestore {
     match /stokvels/{stokvelId} {
       allow read, write: if true;
     }
+    match /transactions/{txId} {
+      allow read, write: if true;
+    }
+    match /notifications/{notifId} {
+      allow read, write: if true;
+    }
   }
 }

@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from './lib/firebase.ts';
 import { UserRole, ClientProfile, LoanApplication, Transaction, NotificationItem, StokvelGroup, OwnerBankingDetails } from './types';
 import { INITIAL_CLIENT, INITIAL_LOANS, INITIAL_TRANSACTIONS, INITIAL_NOTIFICATIONS, INITIAL_STOKVELS, INITIAL_OWNER_BANKING } from './mockData';
+import { saveClientToFirestore, saveLoanToFirestore, updateLoanStatusFirestore, saveTransactionToFirestore, saveStokvelToFirestore } from './lib/firestoreService.ts';
 import { LandingPage } from './components/LandingPage';
 import { AuthModal } from './components/AuthModal';
 import { Navbar } from './components/Navbar';
@@ -45,24 +48,14 @@ export default function App() {
     return saved ? JSON.parse(saved) : INITIAL_CLIENT;
   });
 
-  const [loans, setLoans] = useState<LoanApplication[]>(() => {
-    const saved = localStorage.getItem('credipulse_loans');
-    return saved ? JSON.parse(saved) : INITIAL_LOANS;
-  });
-
-  const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    const saved = localStorage.getItem('credipulse_transactions');
-    return saved ? JSON.parse(saved) : INITIAL_TRANSACTIONS;
-  });
+  const [clientsList, setClientsList] = useState<ClientProfile[]>([INITIAL_CLIENT]);
+  const [loans, setLoans] = useState<LoanApplication[]>(INITIAL_LOANS);
+  const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
+  const [stokvels, setStokvels] = useState<StokvelGroup[]>(INITIAL_STOKVELS);
 
   const [notifications, setNotifications] = useState<NotificationItem[]>(() => {
     const saved = localStorage.getItem('credipulse_notifications');
     return saved ? JSON.parse(saved) : INITIAL_NOTIFICATIONS;
-  });
-
-  const [stokvels, setStokvels] = useState<StokvelGroup[]>(() => {
-    const saved = localStorage.getItem('aurum_stokvels');
-    return saved ? JSON.parse(saved) : INITIAL_STOKVELS;
   });
 
   const [ownerBanking, setOwnerBanking] = useState<OwnerBankingDetails>(() => {
@@ -74,21 +67,60 @@ export default function App() {
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   const [isClockOpen, setIsClockOpen] = useState(false);
 
+  // Real-time Firestore synchronization for production mode
+  useEffect(() => {
+    const unsubClients = onSnapshot(collection(db, 'clients'), (snapshot) => {
+      const fetched: ClientProfile[] = [];
+      snapshot.forEach((doc) => fetched.push(doc.data() as ClientProfile));
+      if (fetched.length > 0) {
+        setClientsList(fetched);
+      }
+    }, (err) => console.error('Firestore clients sync error:', err));
+
+    const unsubLoans = onSnapshot(collection(db, 'loans'), (snapshot) => {
+      const fetched: LoanApplication[] = [];
+      snapshot.forEach((doc) => fetched.push(doc.data() as LoanApplication));
+      if (fetched.length > 0) {
+        setLoans(fetched);
+      }
+    }, (err) => console.error('Firestore loans sync error:', err));
+
+    const unsubTx = onSnapshot(collection(db, 'transactions'), (snapshot) => {
+      const fetched: Transaction[] = [];
+      snapshot.forEach((doc) => fetched.push(doc.data() as Transaction));
+      if (fetched.length > 0) {
+        setTransactions(fetched);
+      }
+    }, (err) => console.error('Firestore transactions sync error:', err));
+
+    const unsubStk = onSnapshot(collection(db, 'stokvels'), (snapshot) => {
+      const fetched: StokvelGroup[] = [];
+      snapshot.forEach((doc) => fetched.push(doc.data() as StokvelGroup));
+      if (fetched.length > 0) {
+        setStokvels(fetched);
+      }
+    }, (err) => console.error('Firestore stokvels sync error:', err));
+
+    return () => {
+      unsubClients();
+      unsubLoans();
+      unsubTx();
+      unsubStk();
+    };
+  }, []);
+
   // Sync state to localStorage
   useEffect(() => {
     localStorage.setItem('aurum_show_landing', JSON.stringify(showLanding));
     localStorage.setItem('credipulse_role', currentRole);
     localStorage.setItem('credipulse_tab', activeTab);
     localStorage.setItem('credipulse_client', JSON.stringify(client));
-    localStorage.setItem('credipulse_loans', JSON.stringify(loans));
-    localStorage.setItem('credipulse_transactions', JSON.stringify(transactions));
     localStorage.setItem('credipulse_notifications', JSON.stringify(notifications));
-    localStorage.setItem('aurum_stokvels', JSON.stringify(stokvels));
     localStorage.setItem('aurum_owner_banking', JSON.stringify(ownerBanking));
-  }, [showLanding, currentRole, activeTab, client, loans, transactions, notifications, stokvels, ownerBanking]);
+  }, [showLanding, currentRole, activeTab, client, notifications, ownerBanking]);
 
   // Handlers
-  const handleLogin = (role: UserRole, email: string) => {
+  const handleLogin = (role: UserRole, identifier: string) => {
     setCurrentRole(role);
     setShowLanding(false);
     setActiveTab(role === 'client' ? 'dashboard' : 'owner_dashboard');
@@ -96,6 +128,7 @@ export default function App() {
 
   const handleRegister = (newClient: ClientProfile) => {
     setClient(newClient);
+    saveClientToFirestore(newClient);
     setCurrentRole('client');
     setShowLanding(false);
     setActiveTab('dashboard');
@@ -123,13 +156,14 @@ export default function App() {
       applicationDate: new Date().toISOString().split('T')[0],
     };
 
+    saveLoanToFirestore(newLoan);
     setLoans((prev) => [newLoan, ...prev]);
 
     const newNotif: NotificationItem = {
       id: `notif-${Date.now()}`,
       clientId: client.id,
       title: 'Loan Application Submitted',
-      message: `Your application for R${newLoan.loanAmount} has been submitted for owner review (Nyasha & Kenny).`,
+      message: `Your application for R${newLoan.loanAmount} has been submitted for Nyasha Michaels & Kenny Mathunywa review.`,
       date: new Date().toISOString().split('T')[0],
       read: false,
       type: 'approval',
@@ -144,8 +178,10 @@ export default function App() {
       timestamp: new Date().toLocaleString(),
     };
 
+    saveTransactionToFirestore(tx);
     setTransactions((prev) => [tx, ...prev]);
 
+    updateLoanStatusFirestore(tx.loanId, 'paid');
     setLoans((prev) =>
       prev.map((l) =>
         l.id === tx.loanId ? { ...l, status: 'paid' } : l
@@ -165,6 +201,7 @@ export default function App() {
   };
 
   const handleApproveLoan = (loanId: string) => {
+    updateLoanStatusFirestore(loanId, 'active');
     setLoans((prev) =>
       prev.map((l) => (l.id === loanId ? { ...l, status: 'active' } : l))
     );
@@ -183,13 +220,14 @@ export default function App() {
         timestamp: new Date().toLocaleString(),
         status: 'success',
       };
+      saveTransactionToFirestore(disburseTx);
       setTransactions((prev) => [disburseTx, ...prev]);
 
       const notif: NotificationItem = {
         id: `notif-${Date.now()}`,
         clientId: targetLoan.clientId,
         title: `Loan #${targetLoan.id} Approved!`,
-        message: `Your loan of R${targetLoan.loanAmount} has been approved and disbursed to your ${client.bankName} account by Aurum Capital management.`,
+        message: `Your loan of R${targetLoan.loanAmount} has been approved and disbursed by Aurum Capital management (Nyasha & Kenny).`,
         date: new Date().toISOString().split('T')[0],
         read: false,
         type: 'approval',
@@ -199,6 +237,7 @@ export default function App() {
   };
 
   const handleRejectLoan = (loanId: string) => {
+    updateLoanStatusFirestore(loanId, 'rejected');
     setLoans((prev) =>
       prev.map((l) => (l.id === loanId ? { ...l, status: 'rejected' } : l))
     );
@@ -206,12 +245,20 @@ export default function App() {
 
   const handleAdjustDueDate = (loanId: string, newDate: string) => {
     setLoans((prev) =>
-      prev.map((l) => (l.id === loanId ? { ...l, dueDate: newDate } : l))
+      prev.map((l) => {
+        if (l.id === loanId) {
+          const updated = { ...l, dueDate: newDate };
+          saveLoanToFirestore(updated);
+          return updated;
+        }
+        return l;
+      })
     );
   };
 
   const handleAddClient = (newClient: ClientProfile) => {
     setClient(newClient);
+    saveClientToFirestore(newClient);
   };
 
   const handleAddStokvel = (newStkData: Omit<StokvelGroup, 'id' | 'membersCount' | 'totalPool'>) => {
@@ -222,12 +269,20 @@ export default function App() {
       totalPool: newStkData.contributionAmount,
       joined: true,
     };
+    saveStokvelToFirestore(newStk);
     setStokvels((prev) => [newStk, ...prev]);
   };
 
   const handleJoinStokvel = (id: string) => {
     setStokvels((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, joined: !s.joined, membersCount: s.joined ? s.membersCount - 1 : s.membersCount + 1 } : s))
+      prev.map((s) => {
+        if (s.id === id) {
+          const updated = { ...s, joined: !s.joined, membersCount: s.joined ? s.membersCount - 1 : s.membersCount + 1 };
+          saveStokvelToFirestore(updated);
+          return updated;
+        }
+        return s;
+      })
     );
   };
 
@@ -307,7 +362,7 @@ export default function App() {
               <TransactionHistory transactions={transactions} />
             )}
             {activeTab === 'profile' && (
-              <ClientProfileView client={client} onUpdateClient={setClient} />
+              <ClientProfileView client={client} onUpdateClient={(c) => { setClient(c); saveClientToFirestore(c); }} />
             )}
           </>
         ) : (
@@ -324,7 +379,7 @@ export default function App() {
             ) : (
               <OwnerDashboard
                 loans={loans}
-                clients={[client]}
+                clients={clientsList}
                 transactions={transactions}
                 ownerBanking={ownerBanking}
                 onUpdateOwnerBanking={setOwnerBanking}

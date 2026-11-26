@@ -35,7 +35,7 @@ export const LoanAgreementContract: React.FC<LoanAgreementContractProps> = ({
       <div className="flex flex-col sm:flex-row justify-between items-center border-b border-slate-200 pb-6 gap-4">
         <div className="flex items-center gap-3">
           <img
-            src="/public/assets/aistudio/money_loaning_fc6cfda1.jpg"
+            src="/assets/aistudio/money_loaning_fc6cfda1.jpg"
             alt="Aurum Capital"
             className="h-16 w-16 rounded-full object-cover border-2 border-amber-500 shadow-md"
           />

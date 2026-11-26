@@ -36,7 +36,7 @@ export const ClockDialog: React.FC<ClockDialogProps> = ({ isOpen, onClose }) => 
         <div className="relative flex justify-center py-4">
           <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-amber-500 to-emerald-500 opacity-30 blur-md animate-pulse" />
           <img
-            src="/public/assets/aistudio/money_loaning_fc6cfda1.jpg"
+            src="/assets/aistudio/money_loaning_fc6cfda1.jpg"
             alt="Aurum Capital Logo"
             className="relative h-24 w-24 rounded-full object-cover border-2 border-amber-400 animate-[spin_15s_linear_infinite]"
           />

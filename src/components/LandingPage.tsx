@@ -19,7 +19,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth, onEnterGue
           <div className="relative group cursor-pointer" onClick={() => onOpenAuth('login')}>
             <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-amber-500 to-emerald-500 opacity-75 blur-sm animate-pulse" />
             <img
-              src="/public/assets/aistudio/money_loaning_fc6cfda1.jpg"
+              src="/assets/aistudio/money_loaning_fc6cfda1.jpg"
               alt="Aurum Capital Logo"
               className="relative h-12 w-12 rounded-full object-cover border-2 border-amber-400 animate-[spin_20s_linear_infinite]"
               title="Click logo to Log On"
@@ -77,7 +77,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth, onEnterGue
           >
             <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-amber-500 via-emerald-500 to-teal-500 opacity-30 blur-xl group-hover:opacity-70 transition duration-500" />
             <img
-              src="/public/assets/aistudio/money_loaning_fc6cfda1.jpg"
+              src="/assets/aistudio/money_loaning_fc6cfda1.jpg"
               alt="Aurum Capital Logo Rotating"
               className="relative h-36 w-36 sm:h-48 sm:w-48 rounded-full object-cover shadow-2xl border-4 border-amber-400/80 animate-[spin_18s_linear_infinite] group-hover:scale-105 transition transform"
             />
