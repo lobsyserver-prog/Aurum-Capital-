@@ -1,0 +1,6 @@
+{
+  "name": "CrediPulse Loan Management & Payment Portal",
+  "description": "Comprehensive micro-lending platform with client dashboards, instant payment portals, bank verification, loan statements, and owner approval workflow.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
