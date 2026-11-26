@@ -79,3 +79,19 @@ export interface StokvelGroup {
   category: 'Savings' | 'Grocery' | 'Investment' | 'Emergency';
   joined?: boolean;
 }
+
+export interface OwnerBankingDetails {
+  bankName: string;
+  accountHolder: string;
+  accountNumber: string;
+  branchCode: string;
+  accountType: string;
+  referenceFormat: string;
+}
+
+export interface AdminUser {
+  name: string;
+  email: string;
+  phone: string;
+  role: 'Owner' | 'Admin';
+}

@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import { Building2, ShieldCheck, CheckCircle2, ArrowRight, ExternalLink, Smartphone, CreditCard, Lock, Check } from 'lucide-react';
+import { Building2, ShieldCheck, CheckCircle2, ArrowRight, ExternalLink, Smartphone, CreditCard, Lock, Check, Landmark } from 'lucide-react';
 import { SOUTH_AFRICAN_BANKS } from '../mockData';
-import { LoanApplication, Transaction } from '../types';
+import { LoanApplication, Transaction, OwnerBankingDetails } from '../types';
 
 interface PaymentPortalProps {
   activeLoan?: LoanApplication;
+  ownerBanking: OwnerBankingDetails;
   onPaymentSuccess: (transaction: Omit<Transaction, 'id' | 'timestamp'>) => void;
 }
 
-export const PaymentPortal: React.FC<PaymentPortalProps> = ({ activeLoan, onPaymentSuccess }) => {
+export const PaymentPortal: React.FC<PaymentPortalProps> = ({ activeLoan, ownerBanking, onPaymentSuccess }) => {
   const [selectedBankId, setSelectedBankId] = useState<string>('capitec');
-  const [paymentMethod, setPaymentMethod] = useState<'instant_eft' | 'card' | 'ussd'>('instant_eft');
+  const [paymentMethod, setPaymentMethod] = useState<'instant_eft' | 'card' | 'ussd' | 'manual_eft'>('instant_eft');
   const [isProcessing, setIsProcessing] = useState(false);
   const [successTx, setSuccessTx] = useState<Transaction | null>(null);
 
@@ -22,7 +23,7 @@ export const PaymentPortal: React.FC<PaymentPortalProps> = ({ activeLoan, onPaym
     setIsProcessing(true);
 
     setTimeout(() => {
-      const refNum = `CP-PAY-${Math.floor(100000 + Math.random() * 900000)}Z`;
+      const refNum = `AUR-PAY-${Math.floor(100000 + Math.random() * 900000)}Z`;
       const newTx: Transaction = {
         id: `tx-${Date.now()}`,
         loanId: activeLoan ? activeLoan.id : 'loan-101',
@@ -45,25 +46,65 @@ export const PaymentPortal: React.FC<PaymentPortalProps> = ({ activeLoan, onPaym
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header Banner */}
-      <div className="rounded-3xl bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 p-8 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+      <div className="rounded-3xl bg-gradient-to-r from-slate-900 via-amber-950 to-emerald-950 p-8 text-white shadow-xl relative overflow-hidden">
+        <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 h-64 w-64 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-300 border border-emerald-500/30">
+            <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/20 px-3 py-1 text-xs font-bold text-amber-300 border border-amber-500/30">
               <ShieldCheck className="h-3.5 w-3.5" />
-              Secure 256-Bit Bank Encryption
+              Aurum Capital Secure Payment Gateway
             </div>
-            <h1 className="text-2xl font-black tracking-tight">Instant Payment Portal</h1>
-            <p className="text-sm text-emerald-100/80 max-w-lg">
-              Settle your micro-loan repayment instantly via your preferred South African online banking portal or USSD secure gateway.
+            <h1 className="text-2xl font-black tracking-tight">Instant Payment Portal & Direct Deposit</h1>
+            <p className="text-sm text-amber-100/80 max-w-lg">
+              Settle your micro-loan repayment instantly via online banking or direct manual deposit into Aurum Capital's verified business account.
             </p>
           </div>
           <div className="rounded-2xl bg-white/10 backdrop-blur-md p-5 border border-white/15 text-center min-w-[200px]">
-            <span className="text-xs text-emerald-200 uppercase font-semibold tracking-wider">Amount Due</span>
+            <span className="text-xs text-amber-200 uppercase font-semibold tracking-wider">Amount Due</span>
             <div className="text-3xl font-black text-white mt-1">R{amountToPay}.00</div>
-            <span className="text-[11px] text-emerald-300 mt-1 block">
+            <span className="text-[11px] text-amber-300 mt-1 block">
               {activeLoan ? `Due: ${activeLoan.dueDate}` : 'No active due date'}
             </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Owner Banking Details Display Card */}
+      <div className="rounded-3xl bg-white p-6 shadow-xl border border-slate-100 space-y-4">
+        <div className="flex items-center gap-2">
+          <div className="rounded-xl bg-amber-100 p-2 text-amber-700">
+            <Landmark className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-slate-900">Aurum Capital Business Bank Account (Official)</h3>
+            <p className="text-xs text-slate-500">Use these details for direct EFT or Branch cash deposits</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 rounded-2xl bg-slate-50 p-4 border border-slate-200 text-xs">
+          <div>
+            <span className="text-slate-500 block">Bank Name</span>
+            <strong className="text-slate-900">{ownerBanking.bankName}</strong>
+          </div>
+          <div>
+            <span className="text-slate-500 block">Account Holder</span>
+            <strong className="text-slate-900">{ownerBanking.accountHolder}</strong>
+          </div>
+          <div>
+            <span className="text-slate-500 block">Account Number</span>
+            <strong className="text-slate-900 font-mono text-sm">{ownerBanking.accountNumber}</strong>
+          </div>
+          <div>
+            <span className="text-slate-500 block">Branch Code</span>
+            <strong className="text-slate-900 font-mono">{ownerBanking.branchCode}</strong>
+          </div>
+          <div>
+            <span className="text-slate-500 block">Account Type</span>
+            <strong className="text-slate-900">{ownerBanking.accountType}</strong>
+          </div>
+          <div>
+            <span className="text-slate-500 block">Reference format</span>
+            <strong className="text-amber-700 font-mono">{ownerBanking.referenceFormat}</strong>
           </div>
         </div>
       </div>
@@ -76,7 +117,7 @@ export const PaymentPortal: React.FC<PaymentPortalProps> = ({ activeLoan, onPaym
           <div className="space-y-2">
             <h2 className="text-2xl font-bold text-slate-900">Payment Successful!</h2>
             <p className="text-sm text-slate-600 max-w-md mx-auto">
-              Your repayment of <strong className="text-slate-900">R{successTx.amount}</strong> via <strong className="text-slate-900">{successTx.bankUsed}</strong> has been successfully processed and credited to your loan ledger.
+              Your repayment of <strong className="text-slate-900">R{successTx.amount}</strong> via <strong className="text-slate-900">{successTx.bankUsed}</strong> has been successfully credited to Aurum Capital.
             </p>
           </div>
 
@@ -132,7 +173,7 @@ export const PaymentPortal: React.FC<PaymentPortalProps> = ({ activeLoan, onPaym
                     onClick={() => setSelectedBankId(bank.id)}
                     className={`flex flex-col items-center justify-center p-4 rounded-2xl border transition text-center relative ${
                       selectedBankId === bank.id
-                        ? 'border-emerald-600 bg-emerald-50/70 shadow-md ring-2 ring-emerald-600/20'
+                        ? 'border-amber-500 bg-amber-50/70 shadow-md ring-2 ring-amber-500/20'
                         : 'border-slate-200 bg-white hover:border-slate-300'
                     }`}
                   >
@@ -142,7 +183,7 @@ export const PaymentPortal: React.FC<PaymentPortalProps> = ({ activeLoan, onPaym
                     <span className="text-xs font-bold text-slate-900 truncate w-full">{bank.name}</span>
                     <span className="text-[10px] text-slate-500 mt-0.5">{bank.ussdCode}</span>
                     {selectedBankId === bank.id && (
-                      <span className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-white">
+                      <span className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-slate-950">
                         <Check className="h-3 w-3" />
                       </span>
                     )}
@@ -161,11 +202,11 @@ export const PaymentPortal: React.FC<PaymentPortalProps> = ({ activeLoan, onPaym
                     onClick={() => setPaymentMethod('instant_eft')}
                     className={`flex items-center justify-center gap-2 rounded-xl border p-3 text-xs font-bold transition ${
                       paymentMethod === 'instant_eft'
-                        ? 'border-emerald-600 bg-emerald-50 text-emerald-950 shadow-xs'
+                        ? 'border-amber-500 bg-amber-50 text-amber-950 shadow-xs'
                         : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
                     }`}
                   >
-                    <Building2 className="h-4 w-4 text-emerald-600" />
+                    <Building2 className="h-4 w-4 text-amber-600" />
                     <span>Instant EFT</span>
                   </button>
 
@@ -174,7 +215,7 @@ export const PaymentPortal: React.FC<PaymentPortalProps> = ({ activeLoan, onPaym
                     onClick={() => setPaymentMethod('card')}
                     className={`flex items-center justify-center gap-2 rounded-xl border p-3 text-xs font-bold transition ${
                       paymentMethod === 'card'
-                        ? 'border-emerald-600 bg-emerald-50 text-emerald-950 shadow-xs'
+                        ? 'border-amber-500 bg-amber-50 text-amber-950 shadow-xs'
                         : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
                     }`}
                   >
@@ -187,11 +228,11 @@ export const PaymentPortal: React.FC<PaymentPortalProps> = ({ activeLoan, onPaym
                     onClick={() => setPaymentMethod('ussd')}
                     className={`flex items-center justify-center gap-2 rounded-xl border p-3 text-xs font-bold transition ${
                       paymentMethod === 'ussd'
-                        ? 'border-emerald-600 bg-emerald-50 text-emerald-950 shadow-xs'
+                        ? 'border-amber-500 bg-amber-50 text-amber-950 shadow-xs'
                         : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
                     }`}
                   >
-                    <Smartphone className="h-4 w-4 text-amber-600" />
+                    <Smartphone className="h-4 w-4 text-emerald-600" />
                     <span>USSD Pay</span>
                   </button>
                 </div>
@@ -215,7 +256,7 @@ export const PaymentPortal: React.FC<PaymentPortalProps> = ({ activeLoan, onPaym
                     href={selectedBank.loginUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="font-bold text-emerald-600 hover:underline flex items-center gap-1"
+                    className="font-bold text-amber-600 hover:underline flex items-center gap-1"
                   >
                     <span>Official Login</span>
                     <ExternalLink className="h-3 w-3" />
@@ -227,24 +268,24 @@ export const PaymentPortal: React.FC<PaymentPortalProps> = ({ activeLoan, onPaym
                 </div>
                 <div className="flex justify-between py-2">
                   <span className="text-slate-500 font-bold">Total Payable:</span>
-                  <span className="text-base font-black text-emerald-700">R{amountToPay}.00</span>
+                  <span className="text-base font-black text-amber-700">R{amountToPay}.00</span>
                 </div>
               </div>
 
               <form onSubmit={handleProcessPayment} className="space-y-4 pt-2">
                 <div className="rounded-2xl bg-slate-50 p-3 border border-slate-200 flex items-center gap-3 text-xs text-slate-600">
-                  <Lock className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <Lock className="h-4 w-4 text-amber-600 shrink-0" />
                   <span>Redirects securely to {selectedBank.name} authentication sandbox for instant clearing.</span>
                 </div>
 
                 <button
                   type="submit"
                   disabled={isProcessing}
-                  className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 py-4 text-xs font-bold text-white shadow-lg shadow-emerald-600/20 hover:from-emerald-700 hover:to-teal-800 transition cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 to-emerald-600 py-4 text-xs font-black text-slate-950 shadow-lg shadow-amber-500/20 hover:opacity-95 transition cursor-pointer"
                 >
                   {isProcessing ? (
                     <div className="flex items-center gap-2">
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-950 border-t-transparent" />
                       <span>Connecting to {selectedBank.name}...</span>
                     </div>
                   ) : (

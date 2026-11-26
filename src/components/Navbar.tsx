@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { UserRole, NotificationItem } from '../types';
-import { Bell, Shield, User, Wallet, ArrowRightLeft, Sparkles, Building2, Users, LogOut } from 'lucide-react';
+import { Bell, Shield, User, Wallet, ArrowRightLeft, Sparkles, Building2, Users, LogOut, Clock, FileText, Calendar as CalendarIcon } from 'lucide-react';
 import { NotificationCenter } from './NotificationCenter';
 
 interface NavbarProps {
@@ -13,6 +13,7 @@ interface NavbarProps {
   onClearAllNotifications: () => void;
   clientName: string;
   onLogout: () => void;
+  onOpenClock: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -25,6 +26,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onClearAllNotifications,
   clientName,
   onLogout,
+  onOpenClock,
 }) => {
   const [showNotif, setShowNotif] = useState(false);
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -52,7 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {currentRole === 'client' ? 'Client Portal' : 'Owner Admin'}
               </span>
             </div>
-            <p className="text-[11px] text-slate-500 font-medium">Loans & Stokvel Savings Pools</p>
+            <p className="text-[11px] text-slate-500 font-medium">Loans, Stokvels & Digital Contracts</p>
           </div>
         </div>
 
@@ -78,7 +80,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Payment Portal
+                Payment
               </button>
               <button
                 onClick={() => setActiveTab('stokvels')}
@@ -92,6 +94,28 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span>Stokvels</span>
               </button>
               <button
+                onClick={() => setActiveTab('calendar')}
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition flex items-center gap-1 ${
+                  activeTab === 'calendar'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <CalendarIcon className="h-3 w-3 text-amber-600" />
+                <span>Calendar</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('contract')}
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition flex items-center gap-1 ${
+                  activeTab === 'contract'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <FileText className="h-3 w-3 text-emerald-600" />
+                <span>Contract & Sign</span>
+              </button>
+              <button
                 onClick={() => setActiveTab('statement')}
                 className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
                   activeTab === 'statement'
@@ -100,16 +124,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }`}
               >
                 Statement
-              </button>
-              <button
-                onClick={() => setActiveTab('history')}
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                  activeTab === 'history'
-                    ? 'bg-white text-slate-900 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Transactions
               </button>
               <button
                 onClick={() => setActiveTab('profile')}
@@ -136,7 +150,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
               <button
                 onClick={() => setActiveTab('owner_approvals')}
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition ${
                   activeTab === 'owner_approvals'
                     ? 'bg-white text-slate-900 shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
@@ -153,24 +167,46 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }`}
               >
                 <Users className="h-3.5 w-3.5 text-amber-600" />
-                <span>Stokvel Management</span>
+                <span>Stokvels</span>
               </button>
               <button
-                onClick={() => setActiveTab('owner_calendar')}
-                className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition ${
-                  activeTab === 'owner_calendar'
+                onClick={() => setActiveTab('calendar')}
+                className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition flex items-center gap-1 ${
+                  activeTab === 'calendar'
                     ? 'bg-white text-slate-900 shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Calendar
+                <CalendarIcon className="h-3.5 w-3.5 text-amber-600" />
+                <span>Calendar</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('contract')}
+                className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition flex items-center gap-1 ${
+                  activeTab === 'contract'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <FileText className="h-3.5 w-3.5 text-emerald-600" />
+                <span>Agreement Contract</span>
               </button>
             </>
           )}
         </nav>
 
-        {/* Right Actions: Role switcher, notifications, profile, logout */}
+        {/* Right Actions: Clock button, role switcher, notifications, logout */}
         <div className="flex items-center gap-3">
+          {/* Clock Button with Rotating Logo */}
+          <button
+            onClick={onOpenClock}
+            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white py-1.5 px-3 text-xs font-bold text-slate-700 hover:bg-slate-50 transition shadow-xs"
+            title="Open Aurum Capital World Clock"
+          >
+            <Clock className="h-3.5 w-3.5 text-amber-600 animate-spin" />
+            <span className="hidden sm:inline">Clock</span>
+          </button>
+
           {/* Role Switcher */}
           <button
             onClick={() => {
@@ -221,93 +257,38 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Submenu Bar */}
       <div className="flex md:hidden overflow-x-auto border-t border-slate-100 bg-slate-50/80 px-4 py-2 gap-2 scrollbar-none">
-        {currentRole === 'client' ? (
-          <>
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`rounded-lg px-3 py-1 text-xs font-semibold whitespace-nowrap ${
-                activeTab === 'dashboard' ? 'bg-slate-900 text-white' : 'text-slate-600 bg-white shadow-xs'
-              }`}
-            >
-              Dashboard
-            </button>
-            <button
-              onClick={() => setActiveTab('payment')}
-              className={`rounded-lg px-3 py-1 text-xs font-semibold whitespace-nowrap ${
-                activeTab === 'payment' ? 'bg-slate-900 text-white' : 'text-slate-600 bg-white shadow-xs'
-              }`}
-            >
-              Payment
-            </button>
-            <button
-              onClick={() => setActiveTab('stokvels')}
-              className={`rounded-lg px-3 py-1 text-xs font-semibold whitespace-nowrap ${
-                activeTab === 'stokvels' ? 'bg-slate-900 text-white' : 'text-slate-600 bg-white shadow-xs'
-              }`}
-            >
-              Stokvels
-            </button>
-            <button
-              onClick={() => setActiveTab('statement')}
-              className={`rounded-lg px-3 py-1 text-xs font-semibold whitespace-nowrap ${
-                activeTab === 'statement' ? 'bg-slate-900 text-white' : 'text-slate-600 bg-white shadow-xs'
-              }`}
-            >
-              Statement
-            </button>
-            <button
-              onClick={() => setActiveTab('history')}
-              className={`rounded-lg px-3 py-1 text-xs font-semibold whitespace-nowrap ${
-                activeTab === 'history' ? 'bg-slate-900 text-white' : 'text-slate-600 bg-white shadow-xs'
-              }`}
-            >
-              History
-            </button>
-            <button
-              onClick={() => setActiveTab('profile')}
-              className={`rounded-lg px-3 py-1 text-xs font-semibold whitespace-nowrap ${
-                activeTab === 'profile' ? 'bg-slate-900 text-white' : 'text-slate-600 bg-white shadow-xs'
-              }`}
-            >
-              Profile
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              onClick={() => setActiveTab('owner_dashboard')}
-              className={`rounded-lg px-3 py-1 text-xs font-semibold whitespace-nowrap ${
-                activeTab === 'owner_dashboard' ? 'bg-slate-900 text-white' : 'text-slate-600 bg-white shadow-xs'
-              }`}
-            >
-              Overview
-            </button>
-            <button
-              onClick={() => setActiveTab('owner_approvals')}
-              className={`rounded-lg px-3 py-1 text-xs font-semibold whitespace-nowrap ${
-                activeTab === 'owner_approvals' ? 'bg-slate-900 text-white' : 'text-slate-600 bg-white shadow-xs'
-              }`}
-            >
-              Approvals
-            </button>
-            <button
-              onClick={() => setActiveTab('stokvels')}
-              className={`rounded-lg px-3 py-1 text-xs font-semibold whitespace-nowrap ${
-                activeTab === 'stokvels' ? 'bg-slate-900 text-white' : 'text-slate-600 bg-white shadow-xs'
-              }`}
-            >
-              Stokvels
-            </button>
-            <button
-              onClick={() => setActiveTab('owner_calendar')}
-              className={`rounded-lg px-3 py-1 text-xs font-semibold whitespace-nowrap ${
-                activeTab === 'owner_calendar' ? 'bg-slate-900 text-white' : 'text-slate-600 bg-white shadow-xs'
-              }`}
-            >
-              Calendar
-            </button>
-          </>
-        )}
+        <button
+          onClick={() => setActiveTab('dashboard')}
+          className={`rounded-lg px-3 py-1 text-xs font-semibold whitespace-nowrap ${
+            activeTab === 'dashboard' ? 'bg-slate-900 text-white' : 'text-slate-600 bg-white shadow-xs'
+          }`}
+        >
+          Dashboard
+        </button>
+        <button
+          onClick={() => setActiveTab('stokvels')}
+          className={`rounded-lg px-3 py-1 text-xs font-semibold whitespace-nowrap ${
+            activeTab === 'stokvels' ? 'bg-slate-900 text-white' : 'text-slate-600 bg-white shadow-xs'
+          }`}
+        >
+          Stokvels
+        </button>
+        <button
+          onClick={() => setActiveTab('calendar')}
+          className={`rounded-lg px-3 py-1 text-xs font-semibold whitespace-nowrap ${
+            activeTab === 'calendar' ? 'bg-slate-900 text-white' : 'text-slate-600 bg-white shadow-xs'
+          }`}
+        >
+          Calendar
+        </button>
+        <button
+          onClick={() => setActiveTab('contract')}
+          className={`rounded-lg px-3 py-1 text-xs font-semibold whitespace-nowrap ${
+            activeTab === 'contract' ? 'bg-slate-900 text-white' : 'text-slate-600 bg-white shadow-xs'
+          }`}
+        >
+          Contract
+        </button>
       </div>
     </header>
   );

@@ -1,0 +1,54 @@
+{
+  "entities": {
+    "Client": {
+      "properties": {
+        "id": { "type": "string" },
+        "fullName": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "idNumber": { "type": "string" },
+        "monthlyIncome": { "type": "number" },
+        "bankName": { "type": "string" },
+        "accountNumber": { "type": "string" }
+      }
+    },
+    "Loan": {
+      "properties": {
+        "id": { "type": "string" },
+        "clientId": { "type": "string" },
+        "clientName": { "type": "string" },
+        "loanAmount": { "type": "number" },
+        "repaymentAmount": { "type": "number" },
+        "termDays": { "type": "number" },
+        "dueDate": { "type": "string" },
+        "status": { "type": "string" }
+      }
+    },
+    "Stokvel": {
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "contributionAmount": { "type": "number" },
+        "membersCount": { "type": "number" },
+        "totalPool": { "type": "number" }
+      }
+    }
+  },
+  "firestore": {
+    "clients": {
+      "schema": "Client",
+      "read": "true",
+      "write": "true"
+    },
+    "loans": {
+      "schema": "Loan",
+      "read": "true",
+      "write": "true"
+    },
+    "stokvels": {
+      "schema": "Stokvel",
+      "read": "true",
+      "write": "true"
+    }
+  }
+}

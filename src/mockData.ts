@@ -178,3 +178,36 @@ export const INITIAL_STOKVELS = [
     joined: false,
   },
 ];
+
+export const INITIAL_OWNER_BANKING = {
+  bankName: 'First National Bank (FNB) Business',
+  accountHolder: 'Aurum Capital Pty Ltd',
+  accountNumber: '62894102934',
+  branchCode: '250655',
+  accountType: 'Business Cheque',
+  referenceFormat: 'AUR-[CLIENT-ID]-[SURNAME]',
+};
+
+export const AURUM_ADMINS = [
+  {
+    name: 'Administrator (Whisphering Winds)',
+    role: 'Owner & Super Admin',
+    email: 'whispheringwinds457@gmail.com',
+    phone: '+27 75 149 1048',
+    whatsapp: '27751491048',
+  },
+  {
+    name: 'Nyasha Michaels',
+    role: 'Owner',
+    email: 'NyashaM@lobsy.co.za',
+    phone: '+27 75 149 1048',
+    whatsapp: '27751491048',
+  },
+  {
+    name: 'Kenny Mathunywa',
+    role: 'Admin',
+    email: 'KennyM@lobsy.co.za',
+    phone: '+27 69 497 7018',
+    whatsapp: '27694977018',
+  },
+];

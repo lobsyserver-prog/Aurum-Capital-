@@ -20,7 +20,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 }) => {
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
   const [role, setRole] = useState<UserRole>('client');
-  const [email, setEmail] = useState('thabo.mokoena@gmail.com');
+  const [email, setEmail] = useState('whispheringwinds457@gmail.com');
   const [password, setPassword] = useState('********');
 
   // Registration state

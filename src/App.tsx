@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { UserRole, ClientProfile, LoanApplication, Transaction, NotificationItem, StokvelGroup } from './types';
-import { INITIAL_CLIENT, INITIAL_LOANS, INITIAL_TRANSACTIONS, INITIAL_NOTIFICATIONS, INITIAL_STOKVELS } from './mockData';
+import { UserRole, ClientProfile, LoanApplication, Transaction, NotificationItem, StokvelGroup, OwnerBankingDetails } from './types';
+import { INITIAL_CLIENT, INITIAL_LOANS, INITIAL_TRANSACTIONS, INITIAL_NOTIFICATIONS, INITIAL_STOKVELS, INITIAL_OWNER_BANKING } from './mockData';
 import { LandingPage } from './components/LandingPage';
 import { AuthModal } from './components/AuthModal';
 import { Navbar } from './components/Navbar';
@@ -11,6 +11,9 @@ import { TransactionHistory } from './components/TransactionHistory';
 import { ClientProfile as ClientProfileView } from './components/ClientProfile';
 import { OwnerDashboard } from './components/OwnerDashboard';
 import { StokvelManager } from './components/StokvelManager';
+import { CalendarView } from './components/CalendarView';
+import { LoanAgreementContract } from './components/LoanAgreementContract';
+import { ClockDialog } from './components/ClockDialog';
 import { LoanApplicationModal } from './components/LoanApplicationModal';
 import { TermsModal } from './components/TermsModal';
 
@@ -62,8 +65,14 @@ export default function App() {
     return saved ? JSON.parse(saved) : INITIAL_STOKVELS;
   });
 
+  const [ownerBanking, setOwnerBanking] = useState<OwnerBankingDetails>(() => {
+    const saved = localStorage.getItem('aurum_owner_banking');
+    return saved ? JSON.parse(saved) : INITIAL_OWNER_BANKING;
+  });
+
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
+  const [isClockOpen, setIsClockOpen] = useState(false);
 
   // Sync state to localStorage
   useEffect(() => {
@@ -75,7 +84,8 @@ export default function App() {
     localStorage.setItem('credipulse_transactions', JSON.stringify(transactions));
     localStorage.setItem('credipulse_notifications', JSON.stringify(notifications));
     localStorage.setItem('aurum_stokvels', JSON.stringify(stokvels));
-  }, [showLanding, currentRole, activeTab, client, loans, transactions, notifications, stokvels]);
+    localStorage.setItem('aurum_owner_banking', JSON.stringify(ownerBanking));
+  }, [showLanding, currentRole, activeTab, client, loans, transactions, notifications, stokvels, ownerBanking]);
 
   // Handlers
   const handleLogin = (role: UserRole, email: string) => {
@@ -119,7 +129,7 @@ export default function App() {
       id: `notif-${Date.now()}`,
       clientId: client.id,
       title: 'Loan Application Submitted',
-      message: `Your application for R${newLoan.loanAmount} has been submitted for owner review.`,
+      message: `Your application for R${newLoan.loanAmount} has been submitted for owner review (Nyasha & Kenny).`,
       date: new Date().toISOString().split('T')[0],
       read: false,
       type: 'approval',
@@ -179,7 +189,7 @@ export default function App() {
         id: `notif-${Date.now()}`,
         clientId: targetLoan.clientId,
         title: `Loan #${targetLoan.id} Approved!`,
-        message: `Your loan of R${targetLoan.loanAmount} has been approved and disbursed to your ${client.bankName} account.`,
+        message: `Your loan of R${targetLoan.loanAmount} has been approved and disbursed to your ${client.bankName} account by Aurum Capital management.`,
         date: new Date().toISOString().split('T')[0],
         read: false,
         type: 'approval',
@@ -192,6 +202,16 @@ export default function App() {
     setLoans((prev) =>
       prev.map((l) => (l.id === loanId ? { ...l, status: 'rejected' } : l))
     );
+  };
+
+  const handleAdjustDueDate = (loanId: string, newDate: string) => {
+    setLoans((prev) =>
+      prev.map((l) => (l.id === loanId ? { ...l, dueDate: newDate } : l))
+    );
+  };
+
+  const handleAddClient = (newClient: ClientProfile) => {
+    setClient(newClient);
   };
 
   const handleAddStokvel = (newStkData: Omit<StokvelGroup, 'id' | 'membersCount' | 'totalPool'>) => {
@@ -230,7 +250,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-emerald-50/30 text-slate-900 font-sans antialiased flex flex-col selection:bg-amber-500 selection:text-slate-950">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-amber-50/30 text-slate-900 font-sans antialiased flex flex-col selection:bg-amber-500 selection:text-slate-950">
       <Navbar
         currentRole={currentRole}
         onRoleSwitch={setCurrentRole}
@@ -241,10 +261,15 @@ export default function App() {
         onClearAllNotifications={handleClearAllNotifications}
         clientName={client.fullName}
         onLogout={handleLogout}
+        onOpenClock={() => setIsClockOpen(true)}
       />
 
       <main className="flex-1 px-4 py-8 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
-        {currentRole === 'client' ? (
+        {activeTab === 'calendar' ? (
+          <CalendarView loans={loans} stokvels={stokvels} />
+        ) : activeTab === 'contract' ? (
+          <LoanAgreementContract client={client} activeLoan={loans.find((l) => l.status === 'active')} />
+        ) : currentRole === 'client' ? (
           <>
             {activeTab === 'dashboard' && (
               <ClientDashboard
@@ -258,6 +283,7 @@ export default function App() {
             {activeTab === 'payment' && (
               <PaymentPortal
                 activeLoan={loans.find((l) => l.status === 'active')}
+                ownerBanking={ownerBanking}
                 onPaymentSuccess={handlePaymentSuccess}
               />
             )}
@@ -293,13 +319,19 @@ export default function App() {
                 onAddStokvel={handleAddStokvel}
                 onJoinStokvel={handleJoinStokvel}
               />
+            ) : activeTab === 'owner_calendar' ? (
+              <CalendarView loans={loans} stokvels={stokvels} />
             ) : (
               <OwnerDashboard
                 loans={loans}
                 clients={[client]}
                 transactions={transactions}
+                ownerBanking={ownerBanking}
+                onUpdateOwnerBanking={setOwnerBanking}
                 onApproveLoan={handleApproveLoan}
                 onRejectLoan={handleRejectLoan}
+                onAdjustDueDate={handleAdjustDueDate}
+                onAddClient={handleAddClient}
                 activeOwnerTab={activeOwnerTab}
                 setActiveOwnerTab={setActiveOwnerTab}
               />
@@ -322,16 +354,21 @@ export default function App() {
         onClose={() => setIsTermsModalOpen(false)}
       />
 
+      <ClockDialog
+        isOpen={isClockOpen}
+        onClose={() => setIsClockOpen(false)}
+      />
+
       {/* Footer */}
       <footer className="border-t border-slate-200/80 bg-white/60 py-6 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p>© 2026 Aurum Capital & CrediPulse Loan Management & Stokvel Portal.</p>
           <div className="flex items-center gap-4">
-            <button onClick={() => setIsTermsModalOpen(true)} className="hover:underline">
-              Terms & Conditions
+            <button onClick={() => setActiveTab('contract')} className="hover:underline font-bold text-amber-700">
+              Loan Agreement & Digital Contract
             </button>
             <span>•</span>
-            <span className="text-emerald-700 font-semibold">POPIA Compliant Secure Lending</span>
+            <span className="text-amber-700 font-semibold">Aurum Capital (Nyasha & Kenny)</span>
           </div>
         </div>
       </footer>
